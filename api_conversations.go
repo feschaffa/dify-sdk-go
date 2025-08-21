@@ -38,6 +38,15 @@ type ConversationsRenamingResponse struct {
 	Result string `json:"result"`
 }
 
+type ConversationsDeleteRequest struct {
+	ConversationID string `json:"conversation_id,omitempty"`
+	User           string `json:"user"`
+}
+
+type ConversationsDeleteResponse struct {
+	Result string `json:"result"`
+}
+
 /* Get conversation list
  * Gets the session list of the current user. By default, the last 20 sessions are returned.
  */
@@ -73,6 +82,26 @@ func (api *API) ConversationsRenaming(ctx context.Context, req *ConversationsRen
 	req.ConversationID = ""
 
 	httpReq, err := api.createBaseRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return
+	}
+	err = api.c.sendJSONRequest(httpReq, &resp)
+	return
+}
+
+/* Delete conversation
+ * Delete a conversation.
+ */
+func (api *API) ConversationsDelete(ctx context.Context, req *ConversationsDeleteRequest) (resp *ConversationsDeleteResponse, err error) {
+	if req.User == "" {
+		err = errors.New("ConversationsDeleteRequest.User Illegal")
+		return
+	}
+
+	url := fmt.Sprintf("/v1/conversations/%s", req.ConversationID)
+	req.ConversationID = ""
+
+	httpReq, err := api.createBaseRequest(ctx, http.MethodDelete, url, req)
 	if err != nil {
 		return
 	}
