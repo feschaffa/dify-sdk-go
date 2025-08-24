@@ -105,6 +105,11 @@ func (api *API) ConversationsDelete(ctx context.Context, req *ConversationsDelet
 	if err != nil {
 		return
 	}
-	err = api.c.sendJSONRequest(httpReq, &resp)
+	err = api.c.sendJSONRequest(httpReq, nil)
+
+	if err == nil {
+		resp = &ConversationsDeleteResponse{Result: "success"}
+	}
+
 	return
 }
