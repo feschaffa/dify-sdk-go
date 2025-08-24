@@ -52,7 +52,7 @@ func (c *Client) sendJSONRequest(req *http.Request, res interface{}) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
 		var errBody struct {
 			Code    string `json:"code"`
 			Message string `json:"message"`
