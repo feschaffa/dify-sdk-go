@@ -3,6 +3,7 @@ package dify
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -58,11 +59,20 @@ func (c *Client) sendJSONRequest(req *http.Request, res interface{}) error {
 			Message string `json:"message"`
 			Status  int    `json:"status"`
 		}
-		err = json.NewDecoder(resp.Body).Decode(&errBody)
-		if err != nil {
-			return err
+		// Tenta decodificar o corpo do erro, mas se não conseguir, usa o status http
+		bodyBytes, _ := io.ReadAll(resp.Body)
+		if jsonErr := json.Unmarshal(bodyBytes, &errBody); jsonErr != nil {
+			return fmt.Errorf("HTTP response error: status %d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
 		}
-		return fmt.Errorf("HTTP response error: [%v]%v", errBody.Code, errBody.Message)
+		return fmt.Errorf("HTTP response error: [%v] %v", errBody.Code, errBody.Message)
+	}
+
+	if resp.StatusCode == http.StatusNoContent {
+		return nil
+	}
+
+	if res == nil {
+		return nil
 	}
 
 	err = json.NewDecoder(resp.Body).Decode(res)
